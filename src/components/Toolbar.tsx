@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useDesignStore } from "@/store/useDesignStore";
+import { useMultiSceneStore } from "@/store/useMultiSceneStore";
 import { PhoneSelector } from "./Canvas/PhoneSelector";
-import { Undo2, Redo2, Save, Download, ShoppingBag, Trash2, Sparkles, Wand2 } from "lucide-react";
+import { Undo2, Redo2, Save, Download, ShoppingBag, Trash2, Sparkles, Wand2, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ALL_TAGS } from "@/types";
 import type { ProjectTag } from "@/types";
@@ -12,9 +13,10 @@ interface ToolbarProps {
   onExport: () => void;
   onShoppingList: () => void;
   onSmartWorkbench: () => void;
+  onMultiSceneCenter: () => void;
 }
 
-export function Toolbar({ canvasRef, onExport, onShoppingList, onSmartWorkbench }: ToolbarProps) {
+export function Toolbar({ canvasRef, onExport, onShoppingList, onSmartWorkbench, onMultiSceneCenter }: ToolbarProps) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveTags, setSaveTags] = useState<ProjectTag[]>([]);
@@ -140,6 +142,14 @@ export function Toolbar({ canvasRef, onExport, onShoppingList, onSmartWorkbench 
             >
               <Wand2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">智能搭配</span>
+            </button>
+
+            <button
+              onClick={onMultiSceneCenter}
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-teal-100 to-cyan-50 text-teal-600 rounded-full hover:shadow-md hover:-translate-y-0.5 transition-all text-[11px] sm:text-xs font-medium border border-teal-200/50 flex-shrink-0"
+            >
+              <LayoutGrid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">多场景搭配</span>
             </button>
 
             <button

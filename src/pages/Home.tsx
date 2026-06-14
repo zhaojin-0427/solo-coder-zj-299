@@ -6,11 +6,13 @@ import { ColorPanel } from "@/components/ColorPanel/ColorPanel";
 import { PropertyPanel } from "@/components/PropertyPanel/PropertyPanel";
 import { HistoryPanel } from "@/components/HistoryPanel/HistoryPanel";
 import { SmartWorkbench } from "@/components/SmartWorkbench/SmartWorkbench";
+import { MultiSceneCenter } from "@/components/MultiSceneCenter/MultiSceneCenter";
 import { ExportModal } from "@/components/Modals/ExportModal";
 import { ShoppingListModal } from "@/components/Modals/ShoppingListModal";
 import { exportAsImage } from "@/utils/exportImage";
 import { generateShoppingList } from "@/utils/shoppingList";
 import { useDesignStore } from "@/store/useDesignStore";
+import { useMultiSceneStore } from "@/store/useMultiSceneStore";
 
 export default function Home() {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -24,12 +26,18 @@ export default function Home() {
   const previewSchemeId = useDesignStore((state) => state.previewSchemeId);
   const setSmartWorkbenchOpen = useDesignStore((state) => state.setSmartWorkbenchOpen);
 
+  const setMultiSceneOpen = useMultiSceneStore((state) => state.setOpen);
+
   const displayElements = previewSchemeId
     ? recommendations.find((r) => r.id === previewSchemeId)?.elements || elements
     : elements;
 
   const handleSmartWorkbench = () => {
     setSmartWorkbenchOpen(true);
+  };
+
+  const handleMultiSceneCenter = () => {
+    setMultiSceneOpen(true);
   };
 
   const handleExportPNG = async () => {
@@ -47,6 +55,7 @@ export default function Home() {
         onExport={() => setShowExportModal(true)}
         onShoppingList={() => setShowShoppingModal(true)}
         onSmartWorkbench={handleSmartWorkbench}
+        onMultiSceneCenter={handleMultiSceneCenter}
       />
 
       <div className="flex-1 flex flex-col lg:flex-row gap-2 sm:gap-3 p-2 sm:p-3 pt-2 pb-4 overflow-hidden w-full max-w-screen">
@@ -84,6 +93,7 @@ export default function Home() {
       />
 
       <SmartWorkbench />
+      <MultiSceneCenter />
     </div>
   );
 }

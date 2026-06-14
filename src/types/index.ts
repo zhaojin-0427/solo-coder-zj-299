@@ -104,6 +104,93 @@ export interface RecommendationScheme {
 
 export type SortOption = "recent" | "price-asc" | "asset-count";
 
+export type SceneType = "通勤" | "约会" | "节日" | "旅行" | "礼物";
+
+export const ALL_SCENE_TYPES: SceneType[] = [
+  "通勤",
+  "约会",
+  "节日",
+  "旅行",
+  "礼物",
+];
+
+export const SCENE_ICONS: Record<SceneType, string> = {
+  "通勤": "💼",
+  "约会": "💕",
+  "节日": "🎉",
+  "旅行": "✈️",
+  "礼物": "🎁",
+};
+
+export const SCENE_COLORS: Record<SceneType, string> = {
+  "通勤": "#667eea",
+  "约会": "#f093fb",
+  "节日": "#ff6b6b",
+  "旅行": "#4ecdc4",
+  "礼物": "#ffd93d",
+};
+
+export interface ScenePlan {
+  id: string;
+  sceneType: SceneType;
+  caseTemplate: CaseTemplate;
+  caseColor: string;
+  elements: CanvasElement[];
+  lensRingAssetId?: string;
+  textLabels: string[];
+  budgetLimit: number;
+  tags: ProjectTag[];
+  thumbnail?: string;
+}
+
+export interface SceneGroup {
+  id: string;
+  name: string;
+  phoneModel: string;
+  scenes: ScenePlan[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SceneComboScore {
+  totalPrice: number;
+  reuseRate: number;
+  styleCoverage: number;
+  lensAvoidance: number;
+  colorHarmony: number;
+  shoppingListDiff: number;
+  overall: number;
+}
+
+export interface SceneCombo {
+  id: string;
+  name: string;
+  scenes: ScenePlan[];
+  score: SceneComboScore;
+}
+
+export type HistorySortOption =
+  | "recent"
+  | "price-asc"
+  | "asset-count"
+  | "scene-count"
+  | "tag-match";
+
+export type HistoryItemType = "single" | "scene-group";
+
+export interface HistoryEntry {
+  id: string;
+  type: HistoryItemType;
+  name: string;
+  phoneModel: string;
+  tags: ProjectTag[];
+  updatedAt: number;
+  thumbnail?: string;
+  totalPrice: number;
+  assetCount: number;
+  sceneCount: number;
+}
+
 export interface SmartWorkbenchState {
   isOpen: boolean;
   recommendations: RecommendationScheme[];

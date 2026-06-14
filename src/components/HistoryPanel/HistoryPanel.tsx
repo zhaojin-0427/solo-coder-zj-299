@@ -1,15 +1,19 @@
 import { useState, type ComponentType } from "react";
 import { useDesignStore } from "@/store/useDesignStore";
+import { useMultiSceneStore } from "@/store/useMultiSceneStore";
 import { TagFilter } from "./TagFilter";
 import { ProjectCard } from "./ProjectCard";
-import { History, ChevronDown, ChevronUp, Plus, ArrowUpDown, Clock, DollarSign, Layers } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Plus, ArrowUpDown, Clock, DollarSign, Layers, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ProjectTag, SortOption } from "@/types";
+import type { ProjectTag, SortOption, HistoryItemType, SceneGroup } from "@/types";
+import { generateShoppingList, calculateTotal } from "@/utils/shoppingList";
 
 export function HistoryPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedTags, setSelectedTags] = useState<ProjectTag[]>([]);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<HistoryItemType | "all">("all");
+
   const projects = useDesignStore((state) => state.projects);
   const currentProjectId = useDesignStore((state) => state.currentProjectId);
   const historySortOption = useDesignStore((state) => state.historySortOption);
@@ -17,10 +21,23 @@ export function HistoryPanel() {
   const getSortedProjects = useDesignStore((state) => state.getSortedProjects);
   const loadProject = useDesignStore((state) => state.loadProject);
 
+  const sceneGroups = useMultiSceneStore((s) => s.sceneGroups);
+  const loadSceneGroup = useMultiSceneStore((s) => s.loadSceneGroup);
+  const setCurrentGroup = useMultiSceneStore((s) => s.setCurrentGroup);
+  const setOpen = useMultiSceneStore((s) => s.setOpen);
+  const deleteSceneGroup = useMultiSceneStore((s) => s.deleteSceneGroup);
+
   const sortedProjects = getSortedProjects();
   const filteredProjects = selectedTags.length === 0
     ? sortedProjects
     : sortedProjects.filter((p) => p.tags.some((t) => selectedTags.includes(t)));
+
+  const filteredSceneGroups = selectedTags.length === 0
+    ? sceneGroups
+    : sceneGroups.filter((g) => {
+        const tags = [...new Set(g.scenes.flatMap((s) => s.tags))];
+        return tags.some((t) => selectedTags.includes(t));
+      });
 
   const sortOptions: { value: SortOption; label: string; icon: ComponentType<{ className?: string }> }[] = [
     { value: "recent", label: "最近更新", icon: Clock },
@@ -40,6 +57,17 @@ export function HistoryPanel() {
     loadProject(projectId);
   };
 
+  const handleLoadSceneGroup = (groupId: string) => {
+    loadSceneGroup(groupId);
+    setCurrentGroup(groupId);
+    setOpen(true);
+  };
+
+  const displayProjects = typeFilter === "scene-group" ? [] : filteredProjects;
+  const displayGroups = typeFilter === "single" ? [] : filteredSceneGroups;
+
+  const totalCount = (typeFilter === "scene-group" ? 0 : projects.length) + (typeFilter === "single" ? 0 : sceneGroups.length);
+
   return (
     <div className="bg-white rounded-t-2xl shadow-soft overflow-hidden">
       <button
@@ -50,7 +78,7 @@ export function HistoryPanel() {
           <History className="w-5 h-5 text-rose-400" />
           <h2 className="text-base font-bold text-gray-800">我的方案</h2>
           <span className="px-2 py-0.5 text-xs font-medium bg-white/80 text-gray-500 rounded-full">
-            {projects.length} 个方案
+            {totalCount} 个方案
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -65,8 +93,26 @@ export function HistoryPanel() {
       {isExpanded && (
         <div className="p-4">
           <div className="flex items-center justify-between mb-4 gap-3">
-            <div className="flex-1 min-w-0">
-              <TagFilter selectedTags={selectedTags} onTagToggle={handleTagToggle} onClear={() => setSelectedTags([])} />
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="flex gap-1 flex-shrink-0">
+                {(["all", "single", "scene-group"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setTypeFilter(type)}
+                    className={cn(
+                      "px-2 py-1 text-[10px] rounded-full transition-all",
+                      typeFilter === type
+                        ? "bg-rose-500 text-white"
+                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    )}
+                  >
+                    {type === "all" ? "全部" : type === "single" ? "单方案" : "场景组"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 min-w-0">
+                <TagFilter selectedTags={selectedTags} onTagToggle={handleTagToggle} onClear={() => setSelectedTags([])} />
+              </div>
             </div>
 
             <div className="relative flex-shrink-0">
@@ -106,14 +152,23 @@ export function HistoryPanel() {
             </div>
           </div>
 
-          {filteredProjects.length > 0 ? (
+          {(displayProjects.length > 0 || displayGroups.length > 0) ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-              {filteredProjects.map((project) => (
+              {displayProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
                   isActive={currentProjectId === project.id}
                   onLoad={() => handleLoadProject(project.id)}
+                />
+              ))}
+
+              {displayGroups.map((group) => (
+                <SceneGroupCard
+                  key={group.id}
+                  group={group}
+                  onLoad={() => handleLoadSceneGroup(group.id)}
+                  onDelete={() => deleteSceneGroup(group.id)}
                 />
               ))}
             </div>
@@ -128,6 +183,63 @@ export function HistoryPanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+interface SceneGroupCardProps {
+  group: SceneGroup;
+  onLoad: () => void;
+  onDelete: () => void;
+}
+
+function SceneGroupCard({ group, onLoad, onDelete }: SceneGroupCardProps) {
+  let totalPrice = 0;
+  let assetCount = 0;
+  group.scenes.forEach((s) => {
+    const items = generateShoppingList(s.elements, s.caseTemplate);
+    totalPrice += calculateTotal(items);
+    assetCount += s.elements.filter((e) => e.assetId).length;
+  });
+
+  return (
+    <div
+      className="bg-white rounded-xl shadow-soft overflow-hidden hover:shadow-md transition-all cursor-pointer group/card border-2 border-teal-100"
+      onClick={onLoad}
+    >
+      <div className="relative aspect-[9/16] bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center p-2">
+        <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-teal-500 text-white text-[9px] rounded-full flex items-center gap-0.5">
+          <LayoutGrid className="w-2.5 h-2.5" />
+          场景组
+        </div>
+        <div className="flex gap-0.5">
+          {group.scenes.slice(0, 3).map((scene, idx) => (
+            <div
+              key={scene.id}
+              className="w-8 h-14 rounded bg-white/60 flex items-center justify-center text-[8px]"
+              style={{ borderLeft: `2px solid ${scene.caseColor}` }}
+            >
+              {scene.sceneType}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="p-2">
+        <h4 className="text-xs font-medium text-gray-800 truncate">{group.name}</h4>
+        <div className="flex items-center justify-between mt-0.5">
+          <span className="text-[10px] text-rose-500 font-bold">¥{Math.round(totalPrice)}</span>
+          <span className="text-[10px] text-gray-400">{group.scenes.length}场景 · {assetCount}素材</span>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="mt-1 w-full py-0.5 text-[10px] text-red-400 hover:bg-red-50 rounded transition-colors"
+        >
+          删除
+        </button>
+      </div>
     </div>
   );
 }
