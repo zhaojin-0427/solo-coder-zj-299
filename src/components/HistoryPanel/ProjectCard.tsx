@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useDesignStore } from "@/store/useDesignStore";
 import { phoneModels } from "@/data/phoneModels";
-import { Trash2, Edit3, MoreVertical, Tag } from "lucide-react";
+import { Trash2, Edit3, MoreVertical, Tag, Sparkles, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project, ProjectTag } from "@/types";
 import { ALL_TAGS } from "@/types";
@@ -17,6 +17,7 @@ export function ProjectCard({ project, isActive, onLoad }: ProjectCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(project.name);
   const [showTagMenu, setShowTagMenu] = useState(false);
+  const [showSourceDetail, setShowSourceDetail] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,6 +91,21 @@ export function ProjectCard({ project, isActive, onLoad }: ProjectCardProps) {
       onClick={onLoad}
     >
       <div className="aspect-[9/16] bg-gradient-to-br from-gray-100 to-gray-50 relative overflow-hidden">
+        {project.replicationSource && (
+          <div className="absolute top-2 left-2 z-10">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSourceDetail(true);
+              }}
+              className="px-1.5 py-0.5 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-[9px] rounded-full flex items-center gap-0.5 shadow-md hover:shadow-lg transition-shadow"
+            >
+              <Sparkles className="w-2.5 h-2.5" />
+              灵感
+            </button>
+          </div>
+        )}
+
         {project.thumbnail ? (
           <img
             src={project.thumbnail}
@@ -213,7 +229,91 @@ export function ProjectCard({ project, isActive, onLoad }: ProjectCardProps) {
             )}
           </div>
         )}
+
+        {project.replicationSource && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSourceDetail(true);
+            }}
+            className="mt-2 w-full py-1 text-[10px] text-violet-500 bg-violet-50 hover:bg-violet-100 rounded transition-colors flex items-center justify-center gap-1"
+          >
+            <Sparkles className="w-3 h-3" />
+            查看灵感来源
+          </button>
+        )}
       </div>
+
+      {showSourceDetail && project.replicationSource && (
+        <div
+          className="absolute inset-0 bg-black/50 flex items-center justify-center z-20 p-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSourceDetail(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl p-3 w-full max-w-[200px] shadow-pop"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                灵感来源
+              </h4>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSourceDetail(false);
+                }}
+                className="p-0.5 hover:bg-gray-100 rounded"
+              >
+                <X className="w-3.5 h-3.5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-[11px]">
+              <div>
+                <span className="text-gray-400">灵感卡名称：</span>
+                <span className="text-gray-700 font-medium">
+                  {project.replicationSource.inspirationCardName}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400">复刻方式：</span>
+                <span className="text-gray-700">
+                  {project.replicationSource.method === "as-new-project"
+                    ? "新方案"
+                    : project.replicationSource.method === "as-new-scene-group"
+                    ? "新场景组"
+                    : "画布覆盖"}
+                </span>
+              </div>
+              <div className="flex items-start gap-1">
+                <Clock className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-400">
+                  {new Date(project.replicationSource.replicatedAt).toLocaleDateString("zh-CN", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div
+                className={cn(
+                  "px-2 py-1 rounded text-center text-[10px] font-medium",
+                  project.replicationSource.hasBeenEdited
+                    ? "bg-amber-50 text-amber-600"
+                    : "bg-emerald-50 text-emerald-600"
+                )}
+              >
+                {project.replicationSource.hasBeenEdited ? "已编辑修改" : "保持原样"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -70,6 +70,7 @@ export interface Project {
   thumbnail?: string;
   createdAt: number;
   updatedAt: number;
+  replicationSource?: ReplicationSource;
 }
 
 export interface ShoppingItem {
@@ -150,6 +151,7 @@ export interface SceneGroup {
   scenes: ScenePlan[];
   createdAt: number;
   updatedAt: number;
+  replicationSource?: ReplicationSource;
 }
 
 export interface SceneComboScore {
@@ -236,4 +238,83 @@ export interface InspirationCard {
   description: string;
   sourceProjectId?: string;
   sourceGroupId?: string;
+}
+
+export type QualityCheckSeverity = "pass" | "warning" | "error" | "info";
+
+export interface QualityCheckItem {
+  id: string;
+  name: string;
+  description: string;
+  severity: QualityCheckSeverity;
+  score: number;
+  maxScore: number;
+  message: string;
+  suggestions?: string[];
+}
+
+export interface QualityCheckResult {
+  overallScore: number;
+  maxScore: number;
+  grade: "excellent" | "good" | "fair" | "poor";
+  checks: QualityCheckItem[];
+  canPublish: boolean;
+  warnings: QualityCheckItem[];
+  errors: QualityCheckItem[];
+}
+
+export type PublishSourceType = "project" | "scene-group";
+
+export interface PublishDraft {
+  id: string;
+  sourceType: PublishSourceType;
+  sourceId: string;
+  name: string;
+  description: string;
+  type: HistoryItemType;
+  phoneModel: string;
+  caseTemplate: CaseTemplate;
+  styleTags: ProjectTag[];
+  sceneTypeTags: SceneType[];
+  thumbnail?: string;
+  elements: CanvasElement[];
+  sceneBreakdowns: InspirationSceneBreakdown[];
+  qualityCheck?: QualityCheckResult;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ReplicationMethod = "to-canvas" | "as-new-project" | "as-new-scene-group";
+
+export interface ReplicationSource {
+  inspirationCardId: string;
+  inspirationCardName: string;
+  replicatedAt: number;
+  method: ReplicationMethod;
+  hasBeenEdited: boolean;
+}
+
+export interface ReplicationComparisonField<T> {
+  original: T;
+  current: T;
+  isSame: boolean;
+  willPreserve: boolean;
+  note?: string;
+}
+
+export interface ReplicationComparison {
+  phoneModel: ReplicationComparisonField<string>;
+  caseTemplate: ReplicationComparisonField<CaseTemplate>;
+  caseColor: ReplicationComparisonField<string>;
+  assetCount: ReplicationComparisonField<number>;
+  estimatedPrice: ReplicationComparisonField<number>;
+  styleTags: ReplicationComparisonField<ProjectTag[]>;
+  sceneCount: ReplicationComparisonField<number>;
+  shoppingListDiff: {
+    preservedItems: string[];
+    newItems: string[];
+    removedItems: string[];
+  };
+  preservedInfo: string[];
+  changedInfo: string[];
 }

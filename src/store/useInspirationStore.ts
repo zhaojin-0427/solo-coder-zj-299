@@ -7,6 +7,7 @@ import type {
   ProjectTag,
   SceneType,
   CaseTemplate,
+  ReplicationMethod,
 } from "@/types";
 import { generateId } from "@/utils/idGenerator";
 import { generateShoppingList, calculateTotal } from "@/utils/shoppingList";
@@ -233,23 +234,55 @@ export const useInspirationStore = create<InspirationState>()(
         if (!card) return;
 
         const store = useDesignStore.getState();
-        const newName = `${card.name} - 复刻`;
+        const newName = `${card.name} · 复刻`;
+
+        const replicationSource = {
+          inspirationCardId: card.id,
+          inspirationCardName: card.name,
+          replicatedAt: Date.now(),
+          method: "as-new-project" as ReplicationMethod,
+          hasBeenEdited: false,
+        };
 
         if (card.type === "single" && card.elements.length > 0) {
-          store.createProjectFromElements(
-            newName,
-            [...card.styleTags],
-            card.elements.map((el) => ({ ...el, id: generateId() })),
-            card.thumbnail
-          );
+          const newProject = {
+            id: generateId(),
+            name: newName,
+            phoneModel: card.phoneModel,
+            caseTemplate: card.caseTemplate,
+            caseColor: card.sceneBreakdowns[0]?.caseColor || "#FFFFFF",
+            elements: card.elements.map((el) => ({ ...el, id: generateId() })),
+            tags: [...card.styleTags],
+            thumbnail: card.thumbnail,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            replicationSource,
+          };
+
+          useDesignStore.setState((state) => ({
+            projects: [...state.projects, newProject],
+          }));
         } else if (card.type === "scene-group" && card.sceneBreakdowns.length > 0) {
           const allElements = card.sceneBreakdowns.flatMap((s) => s.elements);
-          store.createProjectFromElements(
-            newName,
-            [...card.styleTags],
-            allElements.map((el) => ({ ...el, id: generateId() })),
-            card.thumbnail
-          );
+          const firstBreakdown = card.sceneBreakdowns[0];
+          
+          const newProject = {
+            id: generateId(),
+            name: newName,
+            phoneModel: card.phoneModel,
+            caseTemplate: firstBreakdown?.caseTemplate || "transparent",
+            caseColor: firstBreakdown?.caseColor || "#FFFFFF",
+            elements: allElements.map((el) => ({ ...el, id: generateId() })),
+            tags: [...card.styleTags],
+            thumbnail: card.thumbnail,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            replicationSource,
+          };
+
+          useDesignStore.setState((state) => ({
+            projects: [...state.projects, newProject],
+          }));
         }
 
         set((state) => ({
@@ -264,28 +297,40 @@ export const useInspirationStore = create<InspirationState>()(
         const card = cards.find((c) => c.id === cardId);
         if (!card || card.sceneBreakdowns.length === 0) return;
 
-        const multiStore = useMultiSceneStore.getState();
-        const newName = `${card.name} - 复刻`;
-        const phoneModelId = useDesignStore.getState().phoneModel;
+        const newName = `${card.name} · 复刻`;
 
-        const groupId = multiStore.createSceneGroup(newName, card.phoneModel || phoneModelId);
+        const replicationSource = {
+          inspirationCardId: card.id,
+          inspirationCardName: card.name,
+          replicatedAt: Date.now(),
+          method: "as-new-scene-group" as ReplicationMethod,
+          hasBeenEdited: false,
+        };
 
-        card.sceneBreakdowns.forEach((breakdown) => {
-          multiStore.addSceneToGroup(groupId, breakdown.sceneType);
-          const groups = useMultiSceneStore.getState().sceneGroups;
-          const group = groups.find((g) => g.id === groupId);
-          if (group) {
-            const scene = group.scenes[group.scenes.length - 1];
-            if (scene) {
-              multiStore.updateScenePlan(groupId, scene.id, {
-                caseTemplate: breakdown.caseTemplate,
-                caseColor: breakdown.caseColor,
-                elements: breakdown.elements.map((el) => ({ ...el, id: generateId() })),
-                tags: [...breakdown.tags],
-              });
-            }
-          }
-        });
+        const now = Date.now();
+        const newGroup = {
+          id: generateId(),
+          name: newName,
+          phoneModel: card.phoneModel,
+          scenes: card.sceneBreakdowns.map((breakdown) => ({
+            id: generateId(),
+            sceneType: breakdown.sceneType,
+            caseTemplate: breakdown.caseTemplate,
+            caseColor: breakdown.caseColor,
+            elements: breakdown.elements.map((el) => ({ ...el, id: generateId() })),
+            lensRingAssetId: breakdown.elements.find((e) => e.type === "lens-ring")?.assetId,
+            textLabels: [] as string[],
+            budgetLimit: 100,
+            tags: [...breakdown.tags],
+          })),
+          createdAt: now,
+          updatedAt: now,
+          replicationSource,
+        };
+
+        useMultiSceneStore.setState((state) => ({
+          sceneGroups: [...state.sceneGroups, newGroup],
+        }));
 
         set((state) => ({
           cards: state.cards.map((c) =>

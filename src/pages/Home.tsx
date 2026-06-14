@@ -8,6 +8,7 @@ import { HistoryPanel } from "@/components/HistoryPanel/HistoryPanel";
 import { SmartWorkbench } from "@/components/SmartWorkbench/SmartWorkbench";
 import { MultiSceneCenter } from "@/components/MultiSceneCenter/MultiSceneCenter";
 import { InspirationPlaza } from "@/components/InspirationPlaza/InspirationPlaza";
+import { QualityCheckModal } from "@/components/QualityCheck/QualityCheckModal";
 import { ExportModal } from "@/components/Modals/ExportModal";
 import { ShoppingListModal } from "@/components/Modals/ShoppingListModal";
 import { exportAsImage } from "@/utils/exportImage";
@@ -103,6 +104,7 @@ export default function Home() {
       <SmartWorkbench />
       <MultiSceneCenter />
       <InspirationPlaza />
+      <QualityCheckModal />
     </div>
   );
 }
