@@ -57,8 +57,9 @@ export function useDrag({ elementId, containerRef, onDragStart, onDragEnd }: Use
       let newX = dragStartRef.current.elX + dx;
       let newY = dragStartRef.current.elY + dy;
 
-      const elementWidthPercent = (element.width / containerWidth) * 100;
-      const elementHeightPercent = (element.height / containerHeight) * 100;
+      const scale = element.scale || 1;
+      const elementWidthPercent = ((element.width * scale) / containerWidth) * 100;
+      const elementHeightPercent = ((element.height * scale) / containerHeight) * 100;
 
       newX = Math.max(-elementWidthPercent / 2, Math.min(100 - elementWidthPercent / 2, newX));
       newY = Math.max(-elementHeightPercent / 2, Math.min(100 - elementHeightPercent / 2, newY));
@@ -139,13 +140,11 @@ export function useResize({ elementId, containerRef, onResizeEnd }: UseResizeOpt
       const dy = e.clientY - resizeStartRef.current.y;
 
       const delta = Math.max(dx, dy);
-      const scaleChange = delta / 100;
+      const scaleChange = delta / 150;
       const newScale = Math.max(0.3, Math.min(3, resizeStartRef.current.scale + scaleChange));
 
       updateElement(elementId, {
         scale: newScale,
-        width: resizeStartRef.current.width * (newScale / resizeStartRef.current.scale),
-        height: resizeStartRef.current.height * (newScale / resizeStartRef.current.scale),
       });
     },
     [isResizing, element, elementId, updateElement]

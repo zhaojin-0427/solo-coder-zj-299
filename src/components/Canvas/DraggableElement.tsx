@@ -95,7 +95,7 @@ export function DraggableElement({ element, containerRef }: DraggableElementProp
         top: `${element.y}%`,
         width: element.width,
         height: element.height,
-        transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
+        transform: `translate(-50%, -50%) rotate(${element.rotation}deg) scale(${element.scale || 1})`,
         opacity: element.opacity,
         zIndex: element.zIndex,
         transition: isDragging || isResizing || isRotating ? "none" : "box-shadow 0.2s",

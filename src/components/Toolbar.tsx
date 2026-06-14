@@ -65,14 +65,14 @@ export function Toolbar({ canvasRef, onExport, onShoppingList }: ToolbarProps) {
 
   return (
     <>
-      <header className="bg-white/70 backdrop-blur-xl border-b border-white/80 sticky top-0 z-40 shadow-soft">
-        <div className="px-4 lg:px-6 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-400 via-pink-500 to-violet-500 flex items-center justify-center shadow-glow animate-glow-pulse">
-                <Sparkles className="w-5 h-5 text-white" />
+      <header className="bg-white/70 backdrop-blur-xl border-b border-white/80 sticky top-0 z-40 shadow-soft overflow-hidden">
+        <div className="px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 flex items-center gap-2 sm:gap-4 min-w-0 overflow-x-auto scrollbar-thin">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-rose-400 via-pink-500 to-violet-500 flex items-center justify-center shadow-glow animate-glow-pulse">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="text-base font-display font-bold bg-gradient-to-r from-rose-500 via-pink-500 to-violet-500 bg-clip-text text-transparent leading-tight">
                   手机壳搭配预览器
                 </h1>
@@ -80,38 +80,40 @@ export function Toolbar({ canvasRef, onExport, onShoppingList }: ToolbarProps) {
               </div>
             </div>
 
-            <div className="h-8 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent mx-1" />
+            <div className="hidden sm:block h-8 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
 
             <PhoneSelector />
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             <div className="flex items-center gap-0.5 p-1 bg-gray-100/80 rounded-xl backdrop-blur-sm">
               <button
                 onClick={undo}
                 disabled={!canUndo}
                 className={cn(
-                  "p-2 rounded-lg transition-all duration-150",
+                  "p-1.5 sm:p-2 rounded-lg transition-all duration-150",
                   canUndo
                     ? "text-gray-600 hover:bg-white hover:shadow-sm hover:scale-105"
                     : "text-gray-300 cursor-not-allowed"
                 )}
                 title="撤销"
               >
-                <Undo2 className="w-4 h-4" />
+                <Undo2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={redo}
                 disabled={!canRedo}
                 className={cn(
-                  "p-2 rounded-lg transition-all duration-150",
+                  "p-1.5 sm:p-2 rounded-lg transition-all duration-150",
                   canRedo
                     ? "text-gray-600 hover:bg-white hover:shadow-sm hover:scale-105"
                     : "text-gray-300 cursor-not-allowed"
                 )}
                 title="重做"
               >
-                <Redo2 className="w-4 h-4" />
+                <Redo2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
@@ -119,39 +121,39 @@ export function Toolbar({ canvasRef, onExport, onShoppingList }: ToolbarProps) {
               onClick={clearElements}
               disabled={elements.length === 0}
               className={cn(
-                "p-2 rounded-xl transition-all duration-150",
+                "p-1.5 sm:p-2 rounded-xl transition-all duration-150",
                 elements.length > 0
                   ? "text-gray-500 hover:bg-red-50 hover:text-red-500"
                   : "text-gray-300 cursor-not-allowed"
               )}
               title="清空画布"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="h-6 w-px bg-gray-200 mx-0.5" />
+            <div className="hidden sm:block h-6 w-px bg-gray-200" />
 
             <button
               onClick={onShoppingList}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-100 to-purple-50 text-violet-600 rounded-full hover:shadow-md hover:-translate-y-0.5 transition-all text-xs font-medium border border-violet-200/50"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-violet-100 to-purple-50 text-violet-600 rounded-full hover:shadow-md hover:-translate-y-0.5 transition-all text-[11px] sm:text-xs font-medium border border-violet-200/50 flex-shrink-0"
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">购物清单</span>
             </button>
 
             <button
               onClick={onExport}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-50 text-emerald-600 rounded-full hover:shadow-md hover:-translate-y-0.5 transition-all text-xs font-medium border border-emerald-200/50"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-50 text-emerald-600 rounded-full hover:shadow-md hover:-translate-y-0.5 transition-all text-[11px] sm:text-xs font-medium border border-emerald-200/50 flex-shrink-0"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">导出</span>
             </button>
 
             <button
               onClick={handleSaveClick}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-rose-400 via-pink-500 to-violet-500 text-white rounded-full hover:shadow-lg hover:shadow-pink-200/50 hover:-translate-y-0.5 transition-all text-xs font-medium"
+              className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 bg-gradient-to-r from-rose-400 via-pink-500 to-violet-500 text-white rounded-full hover:shadow-lg hover:shadow-pink-200/50 hover:-translate-y-0.5 transition-all text-[11px] sm:text-xs font-medium flex-shrink-0"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{currentProjectId ? "更新" : "保存"}</span>
             </button>
           </div>
