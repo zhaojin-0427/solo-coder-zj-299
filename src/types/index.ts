@@ -197,3 +197,43 @@ export interface SmartWorkbenchState {
   previewSchemeId: string | null;
   isGenerating: boolean;
 }
+
+export type InspirationSortOption =
+  | "popularity"
+  | "recent"
+  | "price-asc"
+  | "price-desc"
+  | "asset-count";
+
+export interface InspirationSceneBreakdown {
+  sceneType: SceneType;
+  caseTemplate: CaseTemplate;
+  caseColor: string;
+  elements: CanvasElement[];
+  tags: ProjectTag[];
+  price: number;
+}
+
+export interface InspirationCard {
+  id: string;
+  type: HistoryItemType;
+  name: string;
+  phoneModel: string;
+  caseTemplate: CaseTemplate;
+  styleTags: ProjectTag[];
+  sceneTypeTags: SceneType[];
+  assetCount: number;
+  estimatedTotalPrice: number;
+  sceneCount: number;
+  publishedAt: number;
+  thumbnail?: string;
+  isFavorited: boolean;
+  favoriteCount: number;
+  viewCount: number;
+  replicateCount: number;
+  elements: CanvasElement[];
+  sceneBreakdowns: InspirationSceneBreakdown[];
+  description: string;
+  sourceProjectId?: string;
+  sourceGroupId?: string;
+}

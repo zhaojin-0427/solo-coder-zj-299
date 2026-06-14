@@ -7,12 +7,14 @@ import { PropertyPanel } from "@/components/PropertyPanel/PropertyPanel";
 import { HistoryPanel } from "@/components/HistoryPanel/HistoryPanel";
 import { SmartWorkbench } from "@/components/SmartWorkbench/SmartWorkbench";
 import { MultiSceneCenter } from "@/components/MultiSceneCenter/MultiSceneCenter";
+import { InspirationPlaza } from "@/components/InspirationPlaza/InspirationPlaza";
 import { ExportModal } from "@/components/Modals/ExportModal";
 import { ShoppingListModal } from "@/components/Modals/ShoppingListModal";
 import { exportAsImage } from "@/utils/exportImage";
 import { generateShoppingList } from "@/utils/shoppingList";
 import { useDesignStore } from "@/store/useDesignStore";
 import { useMultiSceneStore } from "@/store/useMultiSceneStore";
+import { useInspirationStore } from "@/store/useInspirationStore";
 
 export default function Home() {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -27,6 +29,7 @@ export default function Home() {
   const setSmartWorkbenchOpen = useDesignStore((state) => state.setSmartWorkbenchOpen);
 
   const setMultiSceneOpen = useMultiSceneStore((state) => state.setOpen);
+  const setInspirationOpen = useInspirationStore((state) => state.setOpen);
 
   const displayElements = previewSchemeId
     ? recommendations.find((r) => r.id === previewSchemeId)?.elements || elements
@@ -38,6 +41,10 @@ export default function Home() {
 
   const handleMultiSceneCenter = () => {
     setMultiSceneOpen(true);
+  };
+
+  const handleInspirationPlaza = () => {
+    setInspirationOpen(true);
   };
 
   const handleExportPNG = async () => {
@@ -56,6 +63,7 @@ export default function Home() {
         onShoppingList={() => setShowShoppingModal(true)}
         onSmartWorkbench={handleSmartWorkbench}
         onMultiSceneCenter={handleMultiSceneCenter}
+        onInspirationPlaza={handleInspirationPlaza}
       />
 
       <div className="flex-1 flex flex-col lg:flex-row gap-2 sm:gap-3 p-2 sm:p-3 pt-2 pb-4 overflow-hidden w-full max-w-screen">
@@ -94,6 +102,7 @@ export default function Home() {
 
       <SmartWorkbench />
       <MultiSceneCenter />
+      <InspirationPlaza />
     </div>
   );
 }
