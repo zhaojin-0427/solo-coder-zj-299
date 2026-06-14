@@ -87,3 +87,26 @@ export interface HistoryState {
   past: CanvasElement[][];
   future: CanvasElement[][];
 }
+
+export type RecommendationStyle = "简约清新" | "活力可爱" | "潮流炫酷" | "文艺复古" | "商务通勤" | "节日主题";
+
+export interface RecommendationScheme {
+  id: string;
+  name: string;
+  style: RecommendationStyle;
+  styleTags: ProjectTag[];
+  elements: CanvasElement[];
+  estimatedTotal: number;
+  assetCount: number;
+  reason: string;
+  thumbnail?: string;
+}
+
+export type SortOption = "recent" | "price-asc" | "asset-count";
+
+export interface SmartWorkbenchState {
+  isOpen: boolean;
+  recommendations: RecommendationScheme[];
+  previewSchemeId: string | null;
+  isGenerating: boolean;
+}

@@ -6,9 +6,13 @@ import type {
   Project,
   ProjectTag,
   HistoryState,
+  RecommendationScheme,
+  SortOption,
 } from "@/types";
 import { phoneModels } from "@/data/phoneModels";
 import { generateId } from "@/utils/idGenerator";
+import { generateRecommendations } from "@/utils/recommendationEngine";
+import { calculateSchemePrice } from "@/utils/recommendationEngine";
 
 interface DesignState {
   phoneModel: string;
@@ -21,6 +25,11 @@ interface DesignState {
   projectName: string;
   projectTags: ProjectTag[];
   history: HistoryState;
+  smartWorkbenchOpen: boolean;
+  recommendations: RecommendationScheme[];
+  previewSchemeId: string | null;
+  isGeneratingRecommendations: boolean;
+  historySortOption: SortOption;
   setPhoneModel: (model: string) => void;
   setCaseTemplate: (template: CaseTemplate) => void;
   setCaseColor: (color: string) => void;
@@ -41,6 +50,15 @@ interface DesignState {
   setProjectName: (name: string) => void;
   setProjectTags: (tags: ProjectTag[]) => void;
   pushHistory: () => void;
+  setSmartWorkbenchOpen: (open: boolean) => void;
+  generateRecommendations: () => void;
+  setPreviewScheme: (schemeId: string | null) => void;
+  applyRecommendation: (schemeId: string) => void;
+  saveRecommendationAsProject: (schemeId: string, name: string) => void;
+  setHistorySortOption: (option: SortOption) => void;
+  getSortedProjects: () => Project[];
+  getDisplayElements: () => CanvasElement[];
+  createProjectFromElements: (name: string, tags: ProjectTag[], elements: CanvasElement[], thumbnail?: string) => void;
 }
 
 const defaultPhoneModel = phoneModels[0].id;
@@ -273,6 +291,123 @@ export const useDesignStore = create<DesignState>()(
       setProjectName: (name) => set({ projectName: name }),
 
       setProjectTags: (tags) => set({ projectTags: tags }),
+
+      smartWorkbenchOpen: false,
+      recommendations: [],
+      previewSchemeId: null,
+      isGeneratingRecommendations: false,
+      historySortOption: "recent",
+
+      setSmartWorkbenchOpen: (open) => set({ smartWorkbenchOpen: open }),
+
+      generateRecommendations: () => {
+        const { phoneModel: phoneModelId, caseTemplate, caseColor, elements, projectTags } = get();
+        const phoneModel = phoneModels.find((m) => m.id === phoneModelId) || phoneModels[0];
+        
+        set({ isGeneratingRecommendations: true });
+        
+        setTimeout(() => {
+          const recs = generateRecommendations({
+            phoneModel,
+            caseTemplate,
+            caseColor,
+            existingElements: elements,
+            projectTags,
+          });
+          set({ 
+            recommendations: recs, 
+            isGeneratingRecommendations: false,
+            previewSchemeId: null,
+          });
+        }, 300);
+      },
+
+      setPreviewScheme: (schemeId) => set({ previewSchemeId: schemeId }),
+
+      applyRecommendation: (schemeId) => {
+        const { recommendations, pushHistory } = get();
+        const scheme = recommendations.find((r) => r.id === schemeId);
+        if (scheme) {
+          pushHistory();
+          set({ 
+            elements: scheme.elements,
+            selectedElementId: null,
+            previewSchemeId: null,
+          });
+        }
+      },
+
+      setHistorySortOption: (option) => set({ historySortOption: option }),
+
+      getSortedProjects: () => {
+        const { projects, historySortOption } = get();
+        const sorted = [...projects];
+        
+        switch (historySortOption) {
+          case "recent":
+            return sorted.sort((a, b) => b.updatedAt - a.updatedAt);
+          case "price-asc":
+            return sorted.sort((a, b) => {
+              const priceA = calculateSchemePrice(a.elements, a.caseTemplate);
+              const priceB = calculateSchemePrice(b.elements, b.caseTemplate);
+              return priceA - priceB;
+            });
+          case "asset-count":
+            return sorted.sort((a, b) => {
+              const countA = a.elements.filter((e) => e.assetId).length;
+              const countB = b.elements.filter((e) => e.assetId).length;
+              return countA - countB;
+            });
+          default:
+            return sorted;
+        }
+      },
+
+      getDisplayElements: () => {
+        const { elements, previewSchemeId, recommendations } = get();
+        if (previewSchemeId) {
+          const scheme = recommendations.find((r) => r.id === previewSchemeId);
+          if (scheme) {
+            return scheme.elements;
+          }
+        }
+        return elements;
+      },
+
+      createProjectFromElements: (name, tags, elements, thumbnail) => {
+        const {
+          phoneModel,
+          caseTemplate,
+          caseColor,
+          projects,
+        } = get();
+        const now = Date.now();
+
+        const newProject: Project = {
+          id: generateId(),
+          name,
+          phoneModel,
+          caseTemplate,
+          caseColor,
+          elements,
+          tags,
+          thumbnail,
+          createdAt: now,
+          updatedAt: now,
+        };
+        set({
+          projects: [...projects, newProject],
+        });
+      },
+
+      saveRecommendationAsProject: (schemeId, name) => {
+        const { recommendations, createProjectFromElements } = get();
+        const scheme = recommendations.find((r) => r.id === schemeId);
+        if (scheme) {
+          const tags = scheme.styleTags.length > 0 ? scheme.styleTags : [];
+          createProjectFromElements(name, tags, scheme.elements);
+        }
+      },
     }),
     {
       name: "phone-case-design-storage",

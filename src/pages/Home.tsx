@@ -5,6 +5,7 @@ import { AssetLibrary } from "@/components/AssetLibrary/AssetLibrary";
 import { ColorPanel } from "@/components/ColorPanel/ColorPanel";
 import { PropertyPanel } from "@/components/PropertyPanel/PropertyPanel";
 import { HistoryPanel } from "@/components/HistoryPanel/HistoryPanel";
+import { SmartWorkbench } from "@/components/SmartWorkbench/SmartWorkbench";
 import { ExportModal } from "@/components/Modals/ExportModal";
 import { ShoppingListModal } from "@/components/Modals/ShoppingListModal";
 import { exportAsImage } from "@/utils/exportImage";
@@ -19,6 +20,17 @@ export default function Home() {
   const elements = useDesignStore((state) => state.elements);
   const caseTemplate = useDesignStore((state) => state.caseTemplate);
   const projectName = useDesignStore((state) => state.projectName);
+  const recommendations = useDesignStore((state) => state.recommendations);
+  const previewSchemeId = useDesignStore((state) => state.previewSchemeId);
+  const setSmartWorkbenchOpen = useDesignStore((state) => state.setSmartWorkbenchOpen);
+
+  const displayElements = previewSchemeId
+    ? recommendations.find((r) => r.id === previewSchemeId)?.elements || elements
+    : elements;
+
+  const handleSmartWorkbench = () => {
+    setSmartWorkbenchOpen(true);
+  };
 
   const handleExportPNG = async () => {
     if (canvasRef.current) {
@@ -26,7 +38,7 @@ export default function Home() {
     }
   };
 
-  const shoppingItems = generateShoppingList(elements, caseTemplate);
+  const shoppingItems = generateShoppingList(displayElements, caseTemplate);
 
   return (
     <div className="min-h-screen flex flex-col w-full max-w-screen overflow-x-hidden">
@@ -34,6 +46,7 @@ export default function Home() {
         canvasRef={canvasRef}
         onExport={() => setShowExportModal(true)}
         onShoppingList={() => setShowShoppingModal(true)}
+        onSmartWorkbench={handleSmartWorkbench}
       />
 
       <div className="flex-1 flex flex-col lg:flex-row gap-2 sm:gap-3 p-2 sm:p-3 pt-2 pb-4 overflow-hidden w-full max-w-screen">
@@ -69,6 +82,8 @@ export default function Home() {
         onClose={() => setShowShoppingModal(false)}
         items={shoppingItems}
       />
+
+      <SmartWorkbench />
     </div>
   );
 }

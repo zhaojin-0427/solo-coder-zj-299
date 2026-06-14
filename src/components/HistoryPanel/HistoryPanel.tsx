@@ -1,20 +1,34 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { useDesignStore } from "@/store/useDesignStore";
 import { TagFilter } from "./TagFilter";
 import { ProjectCard } from "./ProjectCard";
-import { History, ChevronDown, ChevronUp, Plus } from "lucide-react";
-import type { ProjectTag } from "@/types";
+import { History, ChevronDown, ChevronUp, Plus, ArrowUpDown, Clock, DollarSign, Layers } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ProjectTag, SortOption } from "@/types";
 
 export function HistoryPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedTags, setSelectedTags] = useState<ProjectTag[]>([]);
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const projects = useDesignStore((state) => state.projects);
   const currentProjectId = useDesignStore((state) => state.currentProjectId);
+  const historySortOption = useDesignStore((state) => state.historySortOption);
+  const setHistorySortOption = useDesignStore((state) => state.setHistorySortOption);
+  const getSortedProjects = useDesignStore((state) => state.getSortedProjects);
   const loadProject = useDesignStore((state) => state.loadProject);
 
+  const sortedProjects = getSortedProjects();
   const filteredProjects = selectedTags.length === 0
-    ? projects
-    : projects.filter((p) => p.tags.some((t) => selectedTags.includes(t)));
+    ? sortedProjects
+    : sortedProjects.filter((p) => p.tags.some((t) => selectedTags.includes(t)));
+
+  const sortOptions: { value: SortOption; label: string; icon: ComponentType<{ className?: string }> }[] = [
+    { value: "recent", label: "最近更新", icon: Clock },
+    { value: "price-asc", label: "价格从低到高", icon: DollarSign },
+    { value: "asset-count", label: "素材数量", icon: Layers },
+  ];
+
+  const currentSortOption = sortOptions.find((o) => o.value === historySortOption);
 
   const handleTagToggle = (tag: ProjectTag) => {
     setSelectedTags((prev) =>
@@ -50,8 +64,46 @@ export function HistoryPanel() {
 
       {isExpanded && (
         <div className="p-4">
-          <div className="mb-4">
-            <TagFilter selectedTags={selectedTags} onTagToggle={handleTagToggle} onClear={() => setSelectedTags([])} />
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <div className="flex-1 min-w-0">
+              <TagFilter selectedTags={selectedTags} onTagToggle={handleTagToggle} onClear={() => setSelectedTags([])} />
+            </div>
+
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-xs text-gray-600 transition-colors"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                <span>{currentSortOption?.label || "排序"}</span>
+              </button>
+
+              {showSortMenu && (
+                <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-pop overflow-hidden z-10 animate-scale-in">
+                  {sortOptions.map((option) => {
+                    const Icon = option.icon;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setHistorySortOption(option.value);
+                          setShowSortMenu(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-2 text-left text-xs flex items-center gap-2 transition-colors",
+                          historySortOption === option.value
+                            ? "bg-violet-50 text-violet-600"
+                            : "text-gray-600 hover:bg-gray-50"
+                        )}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {filteredProjects.length > 0 ? (
